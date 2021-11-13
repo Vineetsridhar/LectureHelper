@@ -8,7 +8,7 @@ sg.theme('DarkAmber')
 file_list_column = [
     [
         sg.Text("Transcript"),
-        sg.Button("Begin")
+        sg.Button("Start")
     ],
     [
         sg.Listbox(
@@ -33,7 +33,7 @@ layout = [
     ]
 ]
 
-window = sg.Window("Image Viewer", layout, size=(1920, 1080))
+window = sg.Window("Image Viewer", layout, size=(1280, 720))
 
 # Run the Event Loop
 while True:
