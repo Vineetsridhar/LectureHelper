@@ -1,10 +1,17 @@
-#!/usr/bin/env python
 
-"""
-Code adapted from Google Speech to text documentation
+"""Google Cloud Speech API sample application using the streaming API.
+NOTE: This module requires the dependencies `pyaudio` and `termcolor`.
+To install using pip:
+    pip install pyaudio
+    pip install termcolor
+Example usage:
+    python transcribe_streaming_infinite.py
+
+https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
 """
 
-import os
+# [START speech_transcribe_infinite_streaming]
+
 import re
 import sys
 import time
@@ -14,11 +21,14 @@ import pyaudio
 from six.moves import queue
 
 # Audio recording parameters
-STREAMING_LIMIT = 20000  # 20 seconds (originally 4 mins but shortened for testing purposes)
+STREAMING_LIMIT = 240000  # 4 minutes
 SAMPLE_RATE = 16000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'summarizer-325622-647493dd7f99.json'
+RED = "\033[0;31m"
+GREEN = "\033[0;32m"
+YELLOW = "\033[0;33m"
+
 
 def get_current_time():
     """Return Current Time in MS."""
@@ -84,11 +94,7 @@ class ResumableMicrophoneStream:
 
         while not self.closed:
             data = []
-            
-            """
-            THE BELOW 'IF' STATEMENT IS WHERE THE ERROR IS LIKELY OCCURRING
-            This statement runs when the streaming limit is hit and a new request is made.
-            """
+
             if self.new_stream and self.last_audio_input:
 
                 chunk_time = STREAMING_LIMIT / len(self.last_audio_input)
@@ -142,14 +148,11 @@ class ResumableMicrophoneStream:
 
 def listen_print_loop(responses, stream):
     """Iterates through server responses and prints them.
-
     The responses passed is a generator that will block until a response
     is provided by the server.
-
     Each response may contain multiple results, and each result may contain
-    multiple alternatives; Here we print only the transcription for the top 
-    alternative of the top result.
-
+    multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
+    print only the transcription for the top alternative of the top result.
     In this case, responses are provided for interim results as well. If the
     response is an interim one, print a line feed at the end of it, to allow
     the next result to overwrite it, until the response is a final one. For the
@@ -193,8 +196,9 @@ def listen_print_loop(responses, stream):
 
         if result.is_final:
 
-            sys.stdout.write("FINAL RESULT @ ")
-            sys.stdout.write(str(corrected_time/1000) + ": " + transcript + "\n")
+            sys.stdout.write(GREEN)
+            sys.stdout.write("\033[K")
+            sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
 
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
@@ -202,11 +206,15 @@ def listen_print_loop(responses, stream):
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
             if re.search(r"\b(exit|quit)\b", transcript, re.I):
+                sys.stdout.write(YELLOW)
                 sys.stdout.write("Exiting...\n")
                 stream.closed = True
                 break
 
         else:
+            sys.stdout.write(RED)
+            sys.stdout.write("\033[K")
+            sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
 
             stream.last_transcript_was_final = False
 
@@ -223,11 +231,12 @@ def main():
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True
+        config=config, interim_results=True,enable_automatic_punctuation=True
     )
 
     mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
     print(mic_manager.chunk_size)
+    sys.stdout.write(YELLOW)
     sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
     sys.stdout.write("End (ms)       Transcript Results/Status\n")
     sys.stdout.write("=====================================================\n")
@@ -235,6 +244,7 @@ def main():
     with mic_manager as stream:
 
         while not stream.closed:
+            sys.stdout.write(YELLOW)
             sys.stdout.write(
                 "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
             )
