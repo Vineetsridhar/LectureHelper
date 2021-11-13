@@ -219,64 +219,47 @@ def listen_print_loop(responses, stream):
             stream.last_transcript_was_final = False
 
 
-def main():
-    """start bidirectional streaming from microphone input to speech API"""
-
+def main(stream):
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=SAMPLE_RATE,
         language_code="en-US",
         max_alternatives=1,
+        enable_automatic_punctuation=True
     )
-
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True,enable_automatic_punctuation=True
+        config=config, interim_results=True
     )
 
-    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
-    print(mic_manager.chunk_size)
-    sys.stdout.write(YELLOW)
-    sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
-    sys.stdout.write("End (ms)       Transcript Results/Status\n")
-    sys.stdout.write("=====================================================\n")
+    """start bidirectional streaming from microphone input to speech API"""
+    while not stream.closed:
+        sys.stdout.write(YELLOW)
+        sys.stdout.write(
+            "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+        )
 
-    with mic_manager as stream:
+        stream.audio_input = []
+        audio_generator = stream.generator()
 
-        while not stream.closed:
-            sys.stdout.write(YELLOW)
-            sys.stdout.write(
-                "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
-            )
+        requests = (
+            speech.StreamingRecognizeRequest(audio_content=content)
+            for content in audio_generator
+        )
 
-            stream.audio_input = []
-            audio_generator = stream.generator()
+        responses = client.streaming_recognize(streaming_config, requests)
 
-            requests = (
-                speech.StreamingRecognizeRequest(audio_content=content)
-                for content in audio_generator
-            )
+        # Now, put the transcription responses to use.
+        listen_print_loop(responses, stream)
 
-            responses = client.streaming_recognize(streaming_config, requests)
+        if stream.result_end_time > 0:
+            stream.final_request_end_time = stream.is_final_end_time
+        stream.result_end_time = 0
+        stream.last_audio_input = []
+        stream.last_audio_input = stream.audio_input
+        stream.audio_input = []
+        stream.restart_counter = stream.restart_counter + 1
 
-            # Now, put the transcription responses to use.
-            listen_print_loop(responses, stream)
-
-            if stream.result_end_time > 0:
-                stream.final_request_end_time = stream.is_final_end_time
-            stream.result_end_time = 0
-            stream.last_audio_input = []
-            stream.last_audio_input = stream.audio_input
-            stream.audio_input = []
-            stream.restart_counter = stream.restart_counter + 1
-
-            if not stream.last_transcript_was_final:
-                sys.stdout.write("\n")
-            stream.new_stream = True
-
-
-if __name__ == "__main__":
-
-    main()
-
-# [END speech_transcribe_infinite_streaming]
+        if not stream.last_transcript_was_final:
+            sys.stdout.write("\n")
+        stream.new_stream = True
