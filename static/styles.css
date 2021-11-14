@@ -1,0 +1,44 @@
+@import url("https://fonts.googleapis.com/css2?family=Heebo:wght@200&display=swap");
+.container {
+  background-color: #484848;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 5em;
+}
+
+.subheader {
+  font-size: 4em;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.subheader:hover {
+  color: lightgreen;
+}
+
+.text {
+  color: white;
+  font-family: "Heebo", sans-serif;
+}
+
+.sentence {
+  cursor: pointer;
+  padding-top: 8px;
+  font-size: 2em;
+  transition: 0.3s;
+}
+.sentence:hover {
+  color: lightgreen;
+}
+
+.main-sentence {
+  color: red;
+  font-size: 3em;
+  font-family: "Heebo", sans-serif;
+  text-align: center;
+}

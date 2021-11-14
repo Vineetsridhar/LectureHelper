@@ -1,59 +1,72 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-<head>
-    <title>Socket-Test</title>
+  <head>
+    <title>Lecture Monke</title>
+
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
-        $(document).ready(function() {
-            namespace = '/notes';
-            var socket = io(namespace);
+      $(document).ready(function () {
+        namespace = "/notes";
+        var socket = io(namespace);
 
-            socket.on('my_response', function(msg, cb) {
-                
-                if(msg.is_listening){
-                    $('#sentences').empty()
-                    console.log("Stop")
-                    $('#start').val("Stop")
-                } else {
-                    console.log("Start")
-                    $('#start').val("Start")
-                }
-            });
-            socket.on('new_message', function(msg, cb) {
-                console.log(msg.idx)
-                $('#text').append('<br>' + $('<div/>').text(msg.data).html());
-            });
-
-            socket.on('all_messages', function(message, cb) {
-                console.log("Here")
-                const list = $('#sentences');
-                list.empty();
-                for(let i = 0; i < message.data.length; i++) {
-                    list.append('<li class="' + i + '"> ' + message.data[i]  + '</span></li>')
-                }
-            })
-
-            $('form#listen').submit(function(event) {
-                socket.emit('button_press');
-                return false;
-            });
-
-            
+        socket.on("my_response", function (msg, cb) {
+          if (msg.is_listening) {
+            $("#sentences").empty();
+            $("#start").text("Stop");
+          } else {
+            $("#start").text("Start");
+          }
         });
-    </script>
-</head>
-<body style="background-color:white;">
+        socket.on("new_message", function (msg, cb) {
+          console.log(msg.idx);
+          $("#text").append("<br>" + $("<div/>").text(msg.data).html());
+        });
 
-    <h1 style="background-color:white;">Socket</h1>
-    <form id="listen" method="POST" action="#">
-        <input type="submit" id="start" value="Start"></button>
-    </form>
-    <div id="text">
+        socket.on("all_messages", function (message, cb) {
+          console.log(message)
+          const list = $("#all_sentences");
+          list.empty();
+          for (let i = message.data.length - 2; i >= 0; i--) {
+            list.append(
+              '<p class="text sentence ' + i + '"> ' + message.data[i] + "</p>"
+            );
+          }
+          $('#main_sentence').text(message.data[message.data.length - 1])
+        });
+
+        $("#start").click(function (event) {
+          socket.emit("button_press");
+          return false;
+        });
+      });
+    </script>
+  </head>
+  <body class="container">
+    <div class="container">
+        <h1 class="text header">Lecture Monke</h1>
+        <h3 id="start" class="text subheader">Start</h3>
+        <p id="main_sentence" class="text main-sentence"></p>
         
+        <div id="all_sentences" class="">            
+        </div>
     </div>
 
-    <ul id="sentences"></ul>
-    
-</body>
+  </body>
 </html>
+<!-- <h1 style="background-color:white;">Lecture Monke</h1>
+<form id="listen" method="POST" action="#">
+    <input type="submit" id="start" value="Start"></button>
+</form>
+<div id="sentences">
+    <a class="sentence j">Sentence 1</a>
+    <a class="sentence j">Sentence 2</a>
+</div> -->
