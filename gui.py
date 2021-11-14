@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, disconnect
 from threading import Lock
 from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 from six.moves import queue
-from key_phrase import get_important_words
+from helpers import get_important_words
 
 stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 
