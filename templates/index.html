@@ -1,5 +1,36 @@
+<!DOCTYPE HTML>
 <html>
-    <div>
-        <p>Hello World</p>
+<head>
+    <title>Socket-Test</title>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            namespace = '/notes';
+            var socket = io(namespace);
+
+            socket.on('my_response', function(msg, cb) {
+                console.log("HERE")
+                $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.data).html());
+                if (cb)
+                    cb();
+            });
+
+            $('form#listen').submit(function(event) {
+                socket.emit('button_press');
+                return false;
+            });
+        });
+    </script>
+</head>
+<body style="background-color:white;">
+
+    <h1 style="background-color:white;">Socket</h1>
+    <form id="listen" method="POST" action="#">
+        <input type="submit" id="start" value="Start"></button>
+    </form>
+    <div id="log">
+        <p>Yo</p>
     </div>
+</body>
 </html>
