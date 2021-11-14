@@ -1,12 +1,7 @@
 
-"""Google Cloud Speech API sample application using the streaming API.
-NOTE: This module requires the dependencies `pyaudio` and `termcolor`.
-To install using pip:
-    pip install pyaudio
-    pip install termcolor
-Example usage:
-    python transcribe_streaming_infinite.py
-
+"""
+Adapted from Google sample code
+Linked here:
 https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcribe_streaming_infinite.py
 """
 
@@ -55,7 +50,7 @@ class ResumableMicrophoneStream:
         self.is_final_end_time = 0
         self.final_request_end_time = 0
         self.bridging_offset = 0
-        self.last_transcript_was_final = False
+        self.last_transcript_was_final = True
         self.new_stream = True
         self._audio_interface = pyaudio.PyAudio()
         self._audio_stream = self._audio_interface.open(
@@ -76,7 +71,7 @@ class ResumableMicrophoneStream:
         self.closed = False
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self,):
 
         self._audio_stream.stop_stream()
         self._audio_stream.close()
@@ -149,7 +144,7 @@ class ResumableMicrophoneStream:
             yield b"".join(data)
 
 
-def listen_print_loop(responses, stream):
+def listen_print_loop(responses, stream, sentences):
     """Iterates through server responses and prints them.
     The responses passed is a generator that will block until a response
     is provided by the server.
@@ -202,7 +197,9 @@ def listen_print_loop(responses, stream):
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
-            emit('new_message', {'data':transcript })
+
+            sentences[-1] = transcript
+            emit('all_messages', {'data':sentences}) 
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
@@ -218,11 +215,16 @@ def listen_print_loop(responses, stream):
             sys.stdout.write(RED)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
+            if stream.last_transcript_was_final:
+                sentences.append(transcript)
+            else:
+                sentences[-1] = transcript
+            emit('all_messages', {'data':sentences})
 
             stream.last_transcript_was_final = False
 
 
-def main(stream):
+def main(stream, sentences):
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -253,7 +255,7 @@ def main(stream):
         responses = client.streaming_recognize(streaming_config, requests)
 
         # Now, put the transcription responses to use.
-        listen_print_loop(responses, stream)
+        listen_print_loop(responses, stream, sentences)
 
         if stream.result_end_time > 0:
             stream.final_request_end_time = stream.is_final_end_time
@@ -266,3 +268,4 @@ def main(stream):
         if not stream.last_transcript_was_final:
             sys.stdout.write("\n")
         stream.new_stream = True
+    print("Broken")

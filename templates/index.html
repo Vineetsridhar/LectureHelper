@@ -10,7 +10,9 @@
             var socket = io(namespace);
 
             socket.on('my_response', function(msg, cb) {
+                
                 if(msg.is_listening){
+                    $('#sentences').empty()
                     console.log("Stop")
                     $('#start').val("Stop")
                 } else {
@@ -19,8 +21,18 @@
                 }
             });
             socket.on('new_message', function(msg, cb) {
+                console.log(msg.idx)
                 $('#text').append('<br>' + $('<div/>').text(msg.data).html());
             });
+
+            socket.on('all_messages', function(message, cb) {
+                console.log("Here")
+                const list = $('#sentences');
+                list.empty();
+                for(let i = 0; i < message.data.length; i++) {
+                    list.append('<li class="' + i + '"> ' + message.data[i]  + '</span></li>')
+                }
+            })
 
             $('form#listen').submit(function(event) {
                 socket.emit('button_press');
@@ -40,5 +52,8 @@
     <div id="text">
         
     </div>
+
+    <ul id="sentences"></ul>
+    
 </body>
 </html>
