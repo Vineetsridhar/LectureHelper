@@ -9,7 +9,10 @@
       integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
 
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
@@ -17,7 +20,13 @@
       $(document).ready(function () {
         namespace = "/notes";
         var socket = io(namespace);
-
+        $("#all_sentences").on("click", "p", function () {
+          const idx = $(this).index();
+          socket.emit("process_sentence", {idx});
+        });
+        socket.on('sentence_response', function(msg, cb) {
+            console.log(msg);
+        })
         socket.on("my_response", function (msg, cb) {
           if (msg.is_listening) {
             $("#sentences").empty();
@@ -32,7 +41,6 @@
         });
 
         socket.on("all_messages", function (message, cb) {
-          console.log(message)
           const list = $("#all_sentences");
           list.empty();
           for (let i = message.data.length - 2; i >= 0; i--) {
@@ -40,7 +48,7 @@
               '<p class="text sentence ' + i + '"> ' + message.data[i] + "</p>"
             );
           }
-          $('#main_sentence').text(message.data[message.data.length - 1])
+          $("#main_sentence").text(message.data[message.data.length - 1]);
         });
 
         $("#start").click(function (event) {
@@ -52,21 +60,13 @@
   </head>
   <body class="container">
     <div class="container">
-        <h1 class="text header">Lecture Monke</h1>
-        <h3 id="start" class="text subheader">Start</h3>
-        <p id="main_sentence" class="text main-sentence"></p>
-        
-        <div id="all_sentences" class="">            
-        </div>
-    </div>
+      <h1 class="text header">Lecture Monke</h1>
+      <h3 id="start" class="text subheader">Start</h3>
+      <p id="main_sentence" class="text main-sentence"></p>
 
+      <div id="all_sentences" class="">
+        
+      </div>
+    </div>
   </body>
 </html>
-<!-- <h1 style="background-color:white;">Lecture Monke</h1>
-<form id="listen" method="POST" action="#">
-    <input type="submit" id="start" value="Start"></button>
-</form>
-<div id="sentences">
-    <a class="sentence j">Sentence 1</a>
-    <a class="sentence j">Sentence 2</a>
-</div> -->

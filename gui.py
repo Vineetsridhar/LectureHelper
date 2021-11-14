@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, disconnect
 from threading import Lock
 from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 from six.moves import queue
-
+from key_phrase import get_important_words
 
 stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 
@@ -41,6 +41,18 @@ def button_press():
         stream._buff = queue.Queue()
         stream.closed = True        
     return {}
+
+@socket_.on('process_sentence', namespace='/notes')
+def process(data):
+    curr_sentence = session['sentences'][data['idx']]
+    try:
+        key_phrases = get_important_words(curr_sentence)
+        return emit('sentence_response', {'sentence':curr_sentence, 'words':key_phrases})
+    except Exception:
+        pass
+
+    return {}
+
 
 @socket_.on('disconnect', namespace='/notes')
 def disconnect():
