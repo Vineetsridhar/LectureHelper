@@ -10,10 +10,13 @@
             var socket = io(namespace);
 
             socket.on('my_response', function(msg, cb) {
-                console.log("HERE")
-                $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.data).html());
-                if (cb)
-                    cb();
+                if(msg.is_listening){
+                    console.log("Stop")
+                    $('#start').val("Stop")
+                } else {
+                    console.log("Start")
+                    $('#start').val("Start")
+                }
             });
 
             $('form#listen').submit(function(event) {

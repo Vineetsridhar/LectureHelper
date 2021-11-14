@@ -15,6 +15,7 @@ https://github.com/googleapis/python-speech/blob/main/samples/microphone/transcr
 import re
 import sys
 import time
+import os
 
 from google.cloud import speech
 import pyaudio
@@ -67,6 +68,7 @@ class ResumableMicrophoneStream:
             # overflow while the calling thread makes network requests, etc.
             stream_callback=self._fill_buffer,
         )
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./summarizer-325622-647493dd7f99.json"
 
     def __enter__(self):
 
@@ -263,3 +265,10 @@ def main(stream):
         if not stream.last_transcript_was_final:
             sys.stdout.write("\n")
         stream.new_stream = True
+
+def start_listening():
+    mic = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+    with mic as stream:
+        main(stream)
+
+start_listening()

@@ -16,12 +16,6 @@ def index():
     return render_template('index.html', async_mode=socket_.async_mode)
 
 
-@socket_.on('connect', namespace='/notes')
-def connect():
-    session['is_listening'] = False
-    return emit('my_response',
-         {'count':3, "data":"poo" })
-
 @socket_.on('button_press', namespace='/notes')
 def button_press():
     session['is_listening'] = not session.get('is_listening')
