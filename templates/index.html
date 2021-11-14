@@ -24,8 +24,14 @@
           const idx = $(this).index();
           socket.emit("process_sentence", {idx});
         });
-        socket.on('sentence_response', function(msg, cb) {
-            console.log(msg);
+        socket.on('sentence_response', function(data, cb) {
+            console.log(data);
+            $("#main-image").attr('src', data.image);
+            $('#key-words').empty()
+            for(let i = 0; i < Math.min(data.words.length, 3); i++){
+              let curr_word = data.words[i]
+              $('#key-words').append(`<a style="color:white" class="text item" target="_blank" href="http://google.com/search?q=${curr_word.replace(" ", "%20")}">${curr_word}</a>`);
+            }
         })
         socket.on("my_response", function (msg, cb) {
           if (msg.is_listening) {
@@ -63,9 +69,10 @@
       <h1 class="text header">Lecture Monke</h1>
       <h3 id="start" class="text subheader">Start</h3>
       <p id="main_sentence" class="text main-sentence"></p>
-
+      <img id="main-image" class="image"></img>
+      <div id="key-words" class="word-container">
+      </div>
       <div id="all_sentences" class="">
-        
       </div>
     </div>
   </body>

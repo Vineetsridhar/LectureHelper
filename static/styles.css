@@ -42,3 +42,17 @@
   font-family: "Heebo", sans-serif;
   text-align: center;
 }
+
+.image {
+  max-width: 25%;
+  max-height: 50%;
+  object-fit: contain;
+}
+
+.word-container{
+  margin-top: 16px;
+}
+
+.item{
+  padding-left: 16px;
+}

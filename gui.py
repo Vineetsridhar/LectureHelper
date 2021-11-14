@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, disconnect
 from threading import Lock
 from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 from six.moves import queue
-from helpers import get_important_words
+from helpers import get_important_words, get_related_image
 
 stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 
@@ -44,10 +44,14 @@ def button_press():
 
 @socket_.on('process_sentence', namespace='/notes')
 def process(data):
-    curr_sentence = session['sentences'][data['idx']]
+    n = len(session['sentences']) - 2
+    cvt = n - data['idx']
+
+    curr_sentence = session['sentences'][cvt]
     try:
         key_phrases = get_important_words(curr_sentence)
-        return emit('sentence_response', {'sentence':curr_sentence, 'words':key_phrases})
+        image = get_related_image(key_phrases[0])
+        return emit('sentence_response', {'sentence':curr_sentence, 'words':key_phrases, 'image':image})
     except Exception:
         pass
 

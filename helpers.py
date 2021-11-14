@@ -42,5 +42,5 @@ def get_related_image(search_term):
     response = requests.get(search_url, headers=headers, params=params)
     response.raise_for_status()
     search_results = response.json()
-    print(search_results["value"][0]["contentUrl"])
+    return search_results["value"][0]["contentUrl"]
 
