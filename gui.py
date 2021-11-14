@@ -4,8 +4,6 @@ from threading import Lock
 from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 
 
-
-
 stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 stream.__enter__()
 
