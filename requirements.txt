@@ -1,0 +1,17 @@
+Flask
+Flask-Login
+Flask-Session
+Flask_SocketIO
+itsdangerous
+Jinja2
+MarkupSafe
+python-engineio
+python-socketio
+six
+Werkzeug
+google-api-core
+google-auth
+google-cloud-speech
+googleapis-common-protos
+grpcio
+protobuf
