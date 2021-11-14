@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 import requests
-from azure.ai.textanalytics import TextAnalyticsClient
+from azure.ai.textanalytics import TextAnalyticsClient, ExtractSummaryAction
 from azure.core.credentials import AzureKeyCredential
 
 load_dotenv()
@@ -44,3 +44,23 @@ def get_related_image(search_term):
     search_results = response.json()
     return search_results["value"][0]["contentUrl"]
 
+def get_summary(sentences):
+    poller = client.begin_analyze_actions(
+        sentences,
+        actions=[
+            ExtractSummaryAction(MaxSentenceCount=4)
+        ],
+    )
+
+    document_results = poller.result()
+    output = []
+    for result in document_results:
+        extract_summary_result = result[0]  # first document, first result
+        if extract_summary_result.is_error:
+            print("...Is an error with code '{}' and message '{}'".format(
+                extract_summary_result.code, extract_summary_result.message
+            ))
+        else:
+            output.append(" ".join([sentence.text for sentence in extract_summary_result.sentences]))
+    return output[0]
+            

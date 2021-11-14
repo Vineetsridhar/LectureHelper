@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, disconnect
 from threading import Lock
 from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 from six.moves import queue
-from helpers import get_important_words, get_related_image
+from helpers import get_important_words, get_related_image, get_summary
 
 stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 
@@ -15,6 +15,17 @@ socket_ = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
+def get_transcript():
+    return " ".join(session["sentences"])
+
+def make_output_file():
+    with open("transcript", 'w') as file:
+        file.write("Transcript:\n")
+        file.write(get_transcript())
+        file.write('\n')
+        file.write("------------------\n")
+        file.write("Summary:\n")
+        file.write(get_summary(session["sentences"]))
 
 @app.route('/')
 def index():
@@ -38,8 +49,10 @@ def button_press():
         main(stream, session["sentences"])
     else:
         print("Stop listening")
+        make_output_file()
         stream._buff = queue.Queue()
-        stream.closed = True        
+        stream.__exit__()
+        stream.closed = True
     return {}
 
 @socket_.on('process_sentence', namespace='/notes')
