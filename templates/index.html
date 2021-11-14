@@ -18,11 +18,16 @@
                     $('#start').val("Start")
                 }
             });
+            socket.on('new_message', function(msg, cb) {
+                $('#text').append('<br>' + $('<div/>').text(msg.data).html());
+            });
 
             $('form#listen').submit(function(event) {
                 socket.emit('button_press');
                 return false;
             });
+
+            
         });
     </script>
 </head>
@@ -32,8 +37,8 @@
     <form id="listen" method="POST" action="#">
         <input type="submit" id="start" value="Start"></button>
     </form>
-    <div id="log">
-        <p>Yo</p>
+    <div id="text">
+        
     </div>
 </body>
 </html>

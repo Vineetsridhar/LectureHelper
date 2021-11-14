@@ -20,6 +20,7 @@ import os
 from google.cloud import speech
 import pyaudio
 from six.moves import queue
+from flask_socketio import emit
 
 # Audio recording parameters
 STREAMING_LIMIT = 240000  # 4 minutes
@@ -201,7 +202,7 @@ def listen_print_loop(responses, stream):
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
-
+            emit('new_message', {'data':transcript })
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
@@ -265,10 +266,3 @@ def main(stream):
         if not stream.last_transcript_was_final:
             sys.stdout.write("\n")
         stream.new_stream = True
-
-def start_listening():
-    mic = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
-    with mic as stream:
-        main(stream)
-
-start_listening()

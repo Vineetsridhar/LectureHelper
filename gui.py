@@ -1,7 +1,13 @@
 from flask import Flask, render_template, session, copy_current_request_context
 from flask_socketio import SocketIO, emit, disconnect
 from threading import Lock
+from listen import ResumableMicrophoneStream, SAMPLE_RATE, CHUNK_SIZE, main
 
+
+
+
+stream = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+stream.__enter__()
 
 async_mode = None
 app = Flask(__name__)
@@ -21,8 +27,10 @@ def button_press():
     session['is_listening'] = not session.get('is_listening')
     if session.get('is_listening'):
         print("Start listening")
+        main(stream)
     else:
         print("Stop listening")
+        stream.closed = True
     return emit('my_response',
          {'is_listening':session.get('is_listening') })
 
